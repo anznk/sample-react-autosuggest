@@ -1,26 +1,81 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { render } from 'react-dom';
+import Autosuggest from 'react-autosuggest';
+import cityList from './cityList.json';
+import './index.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+
+const getSuggestions = (value) => {
+  const inputValue = value.trim().toLowerCase();
+  const inputLength = inputValue.length;
+
+  return inputLength === 0 ? [] : cityList.filter((lang) =>
+    lang.name.toLowerCase().slice(0, inputLength) === inputValue,
   );
-}
+};
 
-export default App;
+const getSuggestionValue = (suggestion) => suggestion.name;
+
+const renderSuggestion = (suggestion) => (
+  <div>
+    {suggestion.name}
+  </div>
+);
+
+export default class App extends React.Component{
+  constructor() {
+    super();
+    this.state = {
+      value: '',
+      suggestions: [],
+    };
+  }
+  onChange = (event, { newValue }) => {
+    this.setState({
+      value: newValue,
+    });
+  };
+
+  // Autosuggest will call this function every time you need to update suggestions.
+  // You already implemented this logic above, so just use it.
+  onSuggestionsFetchRequested = ({ value }) => {
+    console.log('onSuggestionsFetchRequested');
+    this.setState({
+      suggestions: getSuggestions(value),
+    });
+  };
+
+  // Autosuggest will call this function every time you need to clear suggestions.
+  onSuggestionsClearRequested = () => {
+    console.log('onSuggestionsClearRequested');
+    this.setState({
+      suggestions: [],
+    });
+  };
+
+  render() {
+    const { value, suggestions } = this.state;
+
+    // Autosuggest will pass through all these props to the input element.
+    const inputProps = {
+      placeholder: 'city name',
+      value,
+      onChange: this.onChange,
+    };
+
+    // Finally, render it!
+    return (
+      <>
+      <h1>React-autoSuggest</h1>
+      <Autosuggest
+        suggestions={suggestions}
+        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+        getSuggestionValue={getSuggestionValue}
+        renderSuggestion={renderSuggestion}
+        inputProps={inputProps}
+      />
+      </>
+    );
+  }
+}
